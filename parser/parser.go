@@ -61,6 +61,15 @@ func (p *Player) Gather() {
 		p.Rank.Tank = i
 	}
 
+	s = doc.Find(EndorsmentLvl).Text()
+	if s != "" {
+		i, err := strconv.Atoi(s)
+		if err != nil {
+			log.Println(err)
+		}
+		p.Endorsment.Level = i
+	}
+
 	d, e := doc.Find(EndorsmentShotcaller).Attr("data-value")
 	if e {
 		c, err := strconv.ParseFloat(d, 64)
