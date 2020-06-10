@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/lexfrei/gow-p/parser"
+	"github.com/lexfrei/gow/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
