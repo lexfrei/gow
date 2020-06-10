@@ -61,7 +61,6 @@ func main() {
 func gather(u *url.URL) {
 	p := parser.NewPlayerByLink(*u)
 	p.Gather()
-	log.Println("gathered!")
 	playerRank.WithLabelValues(p.Name, p.Platform, "tank").Set(float64(p.Rank.Tank))
 	playerRank.WithLabelValues(p.Name, p.Platform, "heal").Set(float64(p.Rank.Heal))
 	playerRank.WithLabelValues(p.Name, p.Platform, "dd").Set(float64(p.Rank.DD))
