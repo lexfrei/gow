@@ -1,7 +1,7 @@
 FROM golang
 
-COPY ./ /go/src/github.com/lexfrei/gow/
-WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter/
+COPY ./ /go/src/github.com/lexfrei/gow/cmd/exporter
+WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter
 
 RUN go get ./ && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ow-exporter
 
