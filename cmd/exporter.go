@@ -18,10 +18,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	p := parser.NewPlayerByLink(*u)
 
-	pr := prometheus.NewGaugeVec(
+	registry := prometheus.NewRegistry()
+	playerRank := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "rank",
 		},
@@ -31,17 +31,30 @@ func main() {
 			"role",
 		},
 	)
-
-	prometheus.MustRegister(pr)
+	playerEndorsment := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "endorsment",
+		},
+		[]string{
+			"user",
+			"platform",
+			"type",
+		},
+	)
+	registry.MustRegister(playerEndorsment, playerRank)
 
 	go func() {
 		timerCh := time.Tick(1 * time.Minute)
 		for range timerCh {
 			p.Gather()
 			log.Println("gathered!")
-			pr.WithLabelValues(p.Name, p.Platform, "tank").Set(float64(p.Rank.Tank))
-			pr.WithLabelValues(p.Name, p.Platform, "heal").Set(float64(p.Rank.Heal))
-			pr.WithLabelValues(p.Name, p.Platform, "dd").Set(float64(p.Rank.DD))
+			playerRank.WithLabelValues(p.Name, p.Platform, "tank").Set(float64(p.Rank.Tank))
+			playerRank.WithLabelValues(p.Name, p.Platform, "heal").Set(float64(p.Rank.Heal))
+			playerRank.WithLabelValues(p.Name, p.Platform, "dd").Set(float64(p.Rank.DD))
+			playerEndorsment.WithLabelValues(p.Name, p.Platform, "level").Set(float64(p.Endorsment.Level))
+			playerEndorsment.WithLabelValues(p.Name, p.Platform, "sportsmanship").Set(p.Endorsment.Sportsmanship)
+			playerEndorsment.WithLabelValues(p.Name, p.Platform, "shotcaller").Set(p.Endorsment.Shotcaller)
+			playerEndorsment.WithLabelValues(p.Name, p.Platform, "teammate").Set(p.Endorsment.Teammate)
 		}
 
 	}()
