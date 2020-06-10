@@ -43,21 +43,46 @@ func (p *Player) Gather() {
 		p.Rank.DD = i
 	}
 
-	rankHeal := doc.Find(HealSR).Text()
-	if rankHeal != "" {
-		i, err := strconv.Atoi(rankHeal)
+	s := doc.Find(HealSR).Text()
+	if s != "" {
+		i, err := strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
 		p.Rank.Heal = i
 	}
 
-	rankTank := doc.Find(TankSR).Text()
-	if rankTank != "" {
-		i, err := strconv.Atoi(rankTank)
+	s = doc.Find(TankSR).Text()
+	if s != "" {
+		i, err := strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
 		p.Rank.Tank = i
 	}
+
+	d, e := doc.Find(EndorsmentShotcaller).Attr("data-value")
+	if e {
+		c, err := strconv.ParseFloat(d, 64)
+		if err == nil {
+			p.Endorsment.Shotcaller = c
+		}
+	}
+
+	d, e = doc.Find(EndorsmentTeammate).Attr("data-value")
+	if e {
+		c, err := strconv.ParseFloat(d, 64)
+		if err == nil {
+			p.Endorsment.Teammate = c
+		}
+	}
+
+	d, e = doc.Find(EndorsmentShotcaller).Attr("data-value")
+	if e {
+		c, err := strconv.ParseFloat(d, 64)
+		if err == nil {
+			p.Endorsment.Sportsmanship = c
+		}
+	}
+
 }
