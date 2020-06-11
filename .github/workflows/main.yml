@@ -14,7 +14,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       
-    - name: Build and push Docker images
+    - name: Build and push exporter
       uses: docker/build-push-action@v1.1.0
       with:
         username: lexfrei
@@ -23,3 +23,4 @@ jobs:
         tag_with_ref: true
         tag_with_sha: true
         registry: docker.pkg.github.com
+        dockerfile: cmd/exporter/Dockerfile
