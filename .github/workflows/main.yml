@@ -21,4 +21,5 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         repository: lexfrei/gow/ow-exporter
         tag_with_ref: true
+        tag_with_sha: true
         registry: docker.pkg.github.com
