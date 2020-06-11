@@ -10,4 +10,5 @@ FROM alpine:latest
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 
 COPY --from=0 /go/src/github.com/lexfrei/gow/cmd/exporter/ow-exporter /
+EXPOSE 9420/tcp
 ENTRYPOINT ["/ow-exporter"]
