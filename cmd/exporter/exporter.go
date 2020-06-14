@@ -35,12 +35,11 @@ var (
 	)
 )
 
-func init() {
-	prometheus.MustRegister(playerRank)
-	prometheus.MustRegister(playerEndorsment)
-}
-
 func main() {
+	r := prometheus.NewRegistry()
+	r.MustRegister(playerRank)
+	r.MustRegister(playerEndorsment)
+
 	u, err := url.Parse(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
@@ -54,7 +53,8 @@ func main() {
 
 	}()
 
-	http.Handle("/metrics", promhttp.Handler())
+	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
+	http.Handle("/metrics", handler)
 	log.Fatal(http.ListenAndServe(":9420", nil))
 }
 
