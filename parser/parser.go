@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+var heroes []string = []string{ana, ashe, baptiste, bastion, brigitte, dva, doomfist, echo, genji, hanzo, junkrat, lucio, mccree, mei, mercy, moira, orisa, pharah, reaper, reinhardt, roadhog, sigma, soldier, sombra, symmetra, torb, tracer, widowmaker, winston, ball, zarya, zen}
 
 func NewPlayerByLink(u url.URL) *Player {
 	return &Player{
@@ -96,63 +99,68 @@ func (p *Player) Gather() {
 		}
 	}
 
-	qps := doc.Find(baseQP)
-	for _, code := range heros {
-		var h Hero
-		name, e := qps.Find(fmt.Sprintf(namePath, code)).Attr("option-id")
-		if e {
-			h.Name = name
-		}
-
-		h.Combat.TotalDMG = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["TotalDMG"])).Text())
-		h.Combat.BarrierDMG = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["TotalDMG"])).Text())
-		h.Combat.Deaths = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["Deaths"])).Text())
-		h.Combat.Eliminations = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["Eliminations"])).Text())
-		h.Combat.EnvKills = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["EnvKills"])).Text())
-		h.Combat.FinalBlows = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["FinalBlows"])).Text())
-		h.Combat.HeroDMG = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["HeroDMG"])).Text())
-		h.Combat.MeleeFinalBlows = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["MeleeFinalBlows"])).Text())
-		h.Combat.Multikills = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["Multikills"])).Text())
-		h.Combat.ObjKills = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["ObjKills"])).Text())
-		h.Combat.SoloKills = stringToUint32(qps.Find(fmt.Sprintf(metricPath, code, combat["SoloKills"])).Text())
-		h.Combat.OnFire = timeToSec(qps.Find(fmt.Sprintf(metricPath, code, combat["OnFire"])).Text())
-		h.Combat.ObjTime = timeToSec(qps.Find(fmt.Sprintf(metricPath, code, combat["ObjTime"])).Text())
-		h.Combat.WeaponAccuracy = stringToPecents(qps.Find(fmt.Sprintf(metricPath, code, combat["WeaponAccuracy"])).Text())
-		h.Combat.MeleeAccuracy = stringToPecents(qps.Find(fmt.Sprintf(metricPath, code, combat["MeleeAccuracy"])).Text())
-	}
-
+	p.Stats = append(p.Stats, parseStats(doc, true)...)
+	p.Stats = append(p.Stats, parseStats(doc, false)...)
 }
 
-func timeToSec(s string) (time uint32) {
+func parseStats(s *goquery.Document, isComp bool) []Stat {
+	var sel *goquery.Selection
+	var str string
+	var stats []Stat
+
+	if isComp {
+		sel = s.Find(baseComp)
+	} else {
+		sel = s.Find(baseQP)
+	}
+
+	for _, code := range heroes {
+
+		heroName, e := sel.Find(fmt.Sprintf(namePath, code)).Attr("option-id")
+		if !e {
+			continue
+		}
+		sel.Find(fmt.Sprintf(statPath, code)).Each(func(i int, s *goquery.Selection) {
+			var stat Stat
+			stat.Hero = heroName
+			stat.IsComp = isComp
+			stat.Name = s.Find("td:nth-child(1)").Text()
+
+			str = s.Find("td:nth-child(2)").Text()
+			switch {
+			case strings.Contains(str, "%"):
+				stat.Value = stringToFloat64(strings.Trim(str, "%"))
+			case strings.Contains(str, ":"):
+				stat.Value = timeToSec(str)
+			default:
+				stat.Value = stringToFloat64(str)
+			}
+
+			stats = append(stats, stat)
+		})
+	}
+	return stats
+}
+
+func timeToSec(s string) (time float64) {
 	switch len(s) {
 	case 8:
-		time = uint32((((int(s[0])-48)*10+int(s[1])-48)*60+((int(s[3])-48)*10+(int(s[4])-48)))*60 + (int(s[6])-48)*10 + int(s[7]) - 48)
+		time = float64((((int(s[0])-48)*10+int(s[1])-48)*60+((int(s[3])-48)*10+(int(s[4])-48)))*60 + (int(s[6])-48)*10 + int(s[7]) - 48)
 	case 5:
-		time = uint32(((int(s[0])-48)*10+(int(s[1])-48))*60 + (int(s[3])-48)*10 + int(s[4]) - 48)
-	case 3:
-		time = uint32((int(s[0])-48)*10 + int(s[1]) - 48)
+		time = float64(((int(s[0])-48)*10+(int(s[1])-48))*60 + (int(s[3])-48)*10 + int(s[4]) - 48)
+	case 2:
+		time = float64((int(s[0])-48)*10 + int(s[1]) - 48)
 	default:
 		time = 0
 	}
 	return
 }
 
-func stringToPecents(s string) (percs uint8) {
-	data, err := strconv.ParseUint(s[0:1], 10, 8)
-	if err != nil {
-		percs = 0
-		return
-	}
-	percs = uint8(data)
-	return
-}
-
-func stringToUint32(s string) (u uint32) {
-	data, err := strconv.ParseUint(s, 10, 32)
+func stringToFloat64(s string) (u float64) {
+	u, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		u = 0
 		return
 	}
-	u = uint32(data)
 	return
 }
