@@ -41,7 +41,7 @@ func (p *Player) Gather() {
 
 	rankDD := doc.Find(ddSR).Text()
 	if rankDD != "" {
-		p.Rank.DD, err := strconv.Atoi(rankDD)
+		p.Rank.DD, err = strconv.Atoi(rankDD)
 		if err != nil {
 			log.Println(err)
 		}
@@ -49,7 +49,7 @@ func (p *Player) Gather() {
 
 	s := doc.Find(healSR).Text()
 	if s != "" {
-		p.Rank.Heal, err := strconv.Atoi(s)
+		p.Rank.Heal, err = strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
@@ -57,7 +57,7 @@ func (p *Player) Gather() {
 
 	s = doc.Find(tankSR).Text()
 	if s != "" {
-		p.Rank.Tank, err := strconv.Atoi(s)
+		p.Rank.Tank, err = strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
@@ -155,5 +155,6 @@ func timeToSec(s string) (time float64) {
 
 func stringToFloat64(s string) (u float64) {
 	// no reason to check this err
-	u, _ := strconv.ParseFloat(s, 64)
+	u, _ = strconv.ParseFloat(s, 64)
+	return
 }
