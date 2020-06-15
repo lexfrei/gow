@@ -59,10 +59,10 @@ func main() {
 		log.Fatal(err)
 	}
 	go func() {
-		gather(u)
+		getStats(u)
 		timerCh := time.Tick(1 * time.Minute)
 		for range timerCh {
-			gather(u)
+			getStats(u)
 		}
 
 	}()
@@ -72,7 +72,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":9420", nil))
 }
 
-func gather(u *url.URL) {
+func getStats(u *url.URL) {
 	p := parser.NewPlayerByLink(*u)
 	p.Gather()
 	playerRank.WithLabelValues(p.Name, p.Platform, "tank").Set(float64(p.Rank.Tank))

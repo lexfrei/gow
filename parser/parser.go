@@ -11,7 +11,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var heroes []string = []string{ana, ashe, baptiste, bastion, brigitte, dva, doomfist, echo, genji, hanzo, junkrat, lucio, mccree, mei, mercy, moira, orisa, pharah, reaper, reinhardt, roadhog, sigma, soldier, sombra, symmetra, torb, tracer, widowmaker, winston, ball, zarya, zen}
+var heroes = []string{ana, ashe, baptiste, bastion, brigitte, dva, doomfist, echo, genji, hanzo, junkrat, lucio, mccree, mei, mercy, moira, orisa, pharah, reaper, reinhardt, roadhog, sigma, soldier, sombra, symmetra, torb, tracer, widowmaker, winston, ball, zarya, zen}
 
 func NewPlayerByLink(u url.URL) *Player {
 	return &Player{
@@ -26,7 +26,7 @@ func (p *Player) Gather() {
 		return
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		log.Printf("status code error: %d %s", res.StatusCode, res.Status)
 		return
 	}
@@ -41,29 +41,26 @@ func (p *Player) Gather() {
 
 	rankDD := doc.Find(ddSR).Text()
 	if rankDD != "" {
-		i, err := strconv.Atoi(rankDD)
+		p.Rank.DD, err := strconv.Atoi(rankDD)
 		if err != nil {
 			log.Println(err)
 		}
-		p.Rank.DD = i
 	}
 
 	s := doc.Find(healSR).Text()
 	if s != "" {
-		i, err := strconv.Atoi(s)
+		p.Rank.Heal, err := strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
-		p.Rank.Heal = i
 	}
 
 	s = doc.Find(tankSR).Text()
 	if s != "" {
-		i, err := strconv.Atoi(s)
+		p.Rank.Tank, err := strconv.Atoi(s)
 		if err != nil {
 			log.Println(err)
 		}
-		p.Rank.Tank = i
 	}
 
 	s = doc.Find(endorsmentLvl).Text()
@@ -91,7 +88,7 @@ func (p *Player) Gather() {
 		}
 	}
 
-	d, e = doc.Find(endorsmentShotcaller).Attr("data-value")
+	d, e = doc.Find(endorsmentSportsmanship).Attr("data-value")
 	if e {
 		c, err := strconv.ParseFloat(d, 64)
 		if err == nil {
@@ -157,10 +154,6 @@ func timeToSec(s string) (time float64) {
 }
 
 func stringToFloat64(s string) (u float64) {
-	u, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		u = 0
-		return
-	}
-	return
+	// no reason to check this err
+	u, _ := strconv.ParseFloat(s, 64)
 }
