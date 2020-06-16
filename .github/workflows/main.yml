@@ -24,3 +24,16 @@ jobs:
         tag_with_sha: true
         registry: docker.pkg.github.com
         dockerfile: build/exporter/Dockerfile
+
+    - uses: actions/checkout@master
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/golang@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    - name: Run Snyk to check Docker image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        image: lexfrei/gow/ow-exporter
