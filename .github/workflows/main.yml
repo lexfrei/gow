@@ -36,4 +36,4 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
-        image: lexfrei/gow/ow-exporter
+        image: docker.pkg.github.com/lexfrei/gow/ow-exporter
