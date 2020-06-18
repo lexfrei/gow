@@ -11,11 +11,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var heroes = []string{ana, ashe, baptiste, bastion, brigitte, dva, doomfist, echo, genji, hanzo, junkrat, lucio, mccree, mei, mercy, moira, orisa, pharah, reaper, reinhardt, roadhog, sigma, soldier, sombra, symmetra, torb, tracer, widowmaker, winston, ball, zarya, zen}
-
 func NewPlayerByLink(u url.URL) *Player {
 	return &Player{
-		url: u,
+		url:    u,
+		Heroes: map[string][]Stat{},
 	}
 }
 
@@ -39,104 +38,117 @@ func (p *Player) Gather() {
 	p.Name = doc.Find(userName).Text()
 	p.Platform = doc.Find(platform).Text()
 
-	rankDD := doc.Find(ddSR).Text()
-	if rankDD != "" {
-		p.Rank.DD, err = strconv.Atoi(rankDD)
+	rawString := doc.Find(ddSR).Text()
+	if rawString != "" {
+		p.Rank.DD, err = strconv.Atoi(rawString)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 
-	s := doc.Find(healSR).Text()
-	if s != "" {
-		p.Rank.Heal, err = strconv.Atoi(s)
+	rawString = doc.Find(healSR).Text()
+	if rawString != "" {
+		p.Rank.Heal, err = strconv.Atoi(rawString)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 
-	s = doc.Find(tankSR).Text()
-	if s != "" {
-		p.Rank.Tank, err = strconv.Atoi(s)
+	rawString = doc.Find(tankSR).Text()
+	if rawString != "" {
+		p.Rank.Tank, err = strconv.Atoi(rawString)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 
-	s = doc.Find(endorsmentLvl).Text()
-	if s != "" {
-		i, err := strconv.Atoi(s)
+	rawString = doc.Find(endorsmentLvl).Text()
+	if rawString != "" {
+		i, err := strconv.Atoi(rawString)
 		if err != nil {
 			log.Println(err)
 		}
 		p.Endorsment.Level = i
 	}
 
-	d, e := doc.Find(endorsmentShotcaller).Attr("data-value")
-	if e {
-		c, err := strconv.ParseFloat(d, 64)
+	rawString, exists := doc.Find(endorsmentShotcaller).Attr("data-value")
+	if exists {
+		rawEndorsment, err := strconv.ParseFloat(rawString, 64)
 		if err == nil {
-			p.Endorsment.Shotcaller = c
+			p.Endorsment.Shotcaller = rawEndorsment
 		}
 	}
 
-	d, e = doc.Find(endorsmentTeammate).Attr("data-value")
-	if e {
-		c, err := strconv.ParseFloat(d, 64)
+	rawString, exists = doc.Find(endorsmentTeammate).Attr("data-value")
+	if exists {
+		rawEndorsment, err := strconv.ParseFloat(rawString, 64)
 		if err == nil {
-			p.Endorsment.Teammate = c
+			p.Endorsment.Teammate = rawEndorsment
 		}
 	}
 
-	d, e = doc.Find(endorsmentSportsmanship).Attr("data-value")
-	if e {
-		c, err := strconv.ParseFloat(d, 64)
+	rawString, exists = doc.Find(endorsmentSportsmanship).Attr("data-value")
+	if exists {
+		rawEndorsment, err := strconv.ParseFloat(rawString, 64)
 		if err == nil {
-			p.Endorsment.Sportsmanship = c
+			p.Endorsment.Sportsmanship = rawEndorsment
 		}
 	}
 
-	p.Stats = append(p.Stats, parseStats(doc, true)...)
-	p.Stats = append(p.Stats, parseStats(doc, false)...)
+	p.parseStats(doc)
 }
 
-func parseStats(s *goquery.Document, isComp bool) []Stat {
+func (p *Player) parseStats(s *goquery.Document) {
 	var sel *goquery.Selection
 	var str string
-	var stats []Stat
+	var switcher = []bool{true, false}
 
-	if isComp {
-		sel = s.Find(baseComp)
-	} else {
-		sel = s.Find(baseQP)
-	}
-
-	for _, code := range heroes {
-
-		heroName, e := sel.Find(fmt.Sprintf(namePath, code)).Attr("option-id")
-		if !e {
-			continue
+	for _, isComp := range switcher {
+		if isComp {
+			sel = s.Find(baseComp)
+		} else {
+			sel = s.Find(baseQP)
 		}
-		sel.Find(fmt.Sprintf(statPath, code)).Each(func(i int, s *goquery.Selection) {
-			var stat Stat
-			stat.Hero = heroName
-			stat.IsComp = isComp
-			stat.Name = s.Find("td:nth-child(1)").Text()
 
-			str = s.Find("td:nth-child(2)").Text()
-			switch {
-			case strings.Contains(str, "%"):
-				stat.Value = stringToFloat64(strings.Trim(str, "%"))
-			case strings.Contains(str, ":"):
-				stat.Value = timeToSec(str)
-			default:
-				stat.Value = stringToFloat64(str)
+		for _, heroCode := range heroes {
+			heroName, e := sel.Find(fmt.Sprintf(namePath, heroCode)).Attr("option-id")
+			if !e {
+				continue
 			}
+			var stat Stat
+			var value float64
+			sel.Find(fmt.Sprintf(statPath, heroCode)).Each(func(i int, s *goquery.Selection) {
 
-			stats = append(stats, stat)
-		})
+				id, exists := s.Attr("data-stat-id")
+				if exists {
+					stat.Name = id
+					return
+				}
+
+				str = s.Find("td:nth-child(2)").Text()
+
+				switch {
+				case strings.Contains(str, "%"):
+					value = stringToFloat64(strings.Trim(str, "%"))
+				case strings.Contains(str, ":"):
+					value = timeToSec(str)
+				default:
+					value = stringToFloat64(str)
+				}
+
+				if isComp {
+					stat.Value.Competitive = value
+				} else {
+					stat.Value.QP = value
+				}
+
+				p.Heroes[heroName] = append(p.Heroes[heroName], stat)
+			})
+		}
+
 	}
-	return stats
+
+	return
 }
 
 func timeToSec(s string) (time float64) {

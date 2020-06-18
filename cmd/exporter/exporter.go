@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
+	"unicode"
 
-	"github.com/iancoleman/strcase"
 	"github.com/lexfrei/gow/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 var (
@@ -42,7 +45,7 @@ var (
 			"user",
 			"platform",
 			"type",
-			"name",
+			"stat",
 			"hero",
 		},
 	)
@@ -82,11 +85,24 @@ func getStats(u *url.URL) {
 	playerEndorsment.WithLabelValues(p.Name, p.Platform, "sportsmanship").Set(p.Endorsment.Sportsmanship)
 	playerEndorsment.WithLabelValues(p.Name, p.Platform, "shotcaller").Set(p.Endorsment.Shotcaller)
 	playerEndorsment.WithLabelValues(p.Name, p.Platform, "teammate").Set(p.Endorsment.Teammate)
-	for _, v := range p.Stats {
-		var gameType string = "qp"
-		if v.IsComp {
-			gameType = "comp"
+	// TODO: Optimize
+	for name, gameStats := range p.Heroes {
+		for _, stat := range gameStats {
+			if stat.Value.Competitive != 0 {
+				stats.WithLabelValues(p.Name, p.Platform, "competitive", normalize(stat.Name), normalize(name)).Set(stat.Value.Competitive)
+			}
+			if stat.Value.QP != 0 {
+				stats.WithLabelValues(p.Name, p.Platform, "qp", normalize(stat.Name), normalize(name)).Set(stat.Value.QP)
+			}
 		}
-		stats.WithLabelValues(p.Name, p.Platform, gameType, strcase.ToSnake(v.Name), v.Hero).Set(v.Value)
 	}
+}
+
+func normalize(s string) string {
+	isMn := func(r rune) bool {
+		return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+	}
+	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+	result, _, _ := transform.String(t, s)
+	return strings.ReplaceAll(result, " ", "_")
 }

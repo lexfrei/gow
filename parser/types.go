@@ -10,7 +10,7 @@ type Player struct {
 	Rank       Rank
 	url        url.URL
 	Endorsment Endorsment
-	Stats      []Stat
+	Heroes     map[string][]Stat
 }
 
 type Rank struct {
@@ -27,8 +27,12 @@ type Endorsment struct {
 }
 
 type Stat struct {
-	Name   string
-	IsComp bool
-	Hero   string
-	Value  float64
+	Name  string
+	Value SValue
+	Help  string
+}
+
+type SValue struct {
+	QP          float64
+	Competitive float64
 }
