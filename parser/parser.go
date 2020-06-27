@@ -115,16 +115,17 @@ func (p *Player) parseStats(s *goquery.Document) {
 			if !e {
 				continue
 			}
-			var stat Stat
+
 			var value float64
 			sel.Find(fmt.Sprintf(statPath, heroCode)).Each(func(i int, s *goquery.Selection) {
+				var stat Stat
+				// id, exists := s.Attr("data-stat-id")
+				// if !exists {
+				// 	stat.Name = id
+				// 	return
+				// }
 
-				id, exists := s.Attr("data-stat-id")
-				if exists {
-					stat.Name = id
-					return
-				}
-
+				stat.Name = s.Find("td:nth-child(1)").Text()
 				str = s.Find("td:nth-child(2)").Text()
 
 				switch {
