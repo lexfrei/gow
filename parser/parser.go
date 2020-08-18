@@ -38,29 +38,21 @@ func (p *Player) Gather() {
 	p.Name = doc.Find(userName).Text()
 	p.Platform = doc.Find(platform).Text()
 
-	rawString := doc.Find(ddSR).Text()
-	if rawString != "" {
-		p.Rank.DD, err = strconv.Atoi(rawString)
-		if err != nil {
-			log.Println(err)
-		}
-	}
+	var rawString string
 
-	rawString = doc.Find(healSR).Text()
-	if rawString != "" {
-		p.Rank.Heal, err = strconv.Atoi(rawString)
-		if err != nil {
-			log.Println(err)
+	doc.Find(srPath).Each(func(i int, s *goquery.Selection) {
+		rawString, e := s.Find(".competitive-rank-tier.competitive-rank-tier-tooltip").Attr("data-ow-tooltip-text")
+		if e {
+			switch rawString {
+			case "Tank Skill Rating":
+				p.Rank.Tank = stringToInt(s.Text())
+			case "Damage Skill Rating":
+				p.Rank.DD = stringToInt(s.Text())
+			case "Support Skill Rating":
+				p.Rank.Heal = stringToInt(s.Text())
+			}
 		}
-	}
-
-	rawString = doc.Find(tankSR).Text()
-	if rawString != "" {
-		p.Rank.Tank, err = strconv.Atoi(rawString)
-		if err != nil {
-			log.Println(err)
-		}
-	}
+	})
 
 	rawString = doc.Find(endorsmentLvl).Text()
 	if rawString != "" {
@@ -169,5 +161,11 @@ func timeToSec(s string) (time float64) {
 func stringToFloat64(s string) (u float64) {
 	// no reason to check this err
 	u, _ = strconv.ParseFloat(s, 64)
+	return
+}
+
+func stringToInt(s string) (i int) {
+	// no reason to check this err
+	i, _ = strconv.Atoi(s)
 	return
 }
