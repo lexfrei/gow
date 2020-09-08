@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.1
       
     - name: Build and push exporter
       uses: docker/build-push-action@v2
@@ -25,11 +25,11 @@ jobs:
         registry: ghcr.io
         dockerfile: build/exporter/Dockerfile
 
-    - uses: actions/checkout@master
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/golang@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    # - uses: actions/checkout@master
+    # - name: Run Snyk to check for vulnerabilities
+    #   uses: snyk/actions/golang@master
+    #   env:
+    #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     # - name: Run Snyk to check Docker image for vulnerabilities
     #   uses: snyk/actions/docker@master
