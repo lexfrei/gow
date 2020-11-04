@@ -1,14 +1,18 @@
-FROM golang
+FROM golang:1.15.3-alpine3.12 AS build
 
 COPY ./ /go/src/github.com/lexfrei/gow/
 WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter
 
-RUN go get ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ow-exporter
+RUN go get ./... && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o ow-exporter
 
-FROM alpine:latest
+FROM alpine:3.12.1
 
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+LABEL org.opencontainers.image.source="https://github.com/lexfrei/gow"
 
-COPY --from=0 /go/src/github.com/lexfrei/gow/cmd/exporter/ow-exporter /
+RUN apk add -u --no-cache ca-certificates=20191127-r4
+
+COPY --from=build /go/src/github.com/lexfrei/gow/cmd/exporter/ow-exporter /
+
 EXPOSE 9420/tcp
+
 ENTRYPOINT ["/ow-exporter"]
