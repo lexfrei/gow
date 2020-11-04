@@ -1,4 +1,4 @@
-name: CI
+name: Build Container Image
 
 on:
   push:
@@ -9,12 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Prepare
       id: prep
       run: |
-        DOCKER_IMAGE=lexfrei/ow-exporter
+        DOCKER_IMAGE=ghcr.io/lexfrei/ow-exporter
         VERSION=edge
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/}
