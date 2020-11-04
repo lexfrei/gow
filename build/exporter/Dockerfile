@@ -7,8 +7,6 @@ RUN go get ./... && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build
 
 FROM alpine:3.12.1
 
-LABEL org.opencontainers.image.source="https://github.com/lexfrei/gow"
-
 RUN apk add -u --no-cache ca-certificates=20191127-r4
 
 COPY --from=build /go/src/github.com/lexfrei/gow/cmd/exporter/ow-exporter /
