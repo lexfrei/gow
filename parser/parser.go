@@ -95,6 +95,32 @@ func (p *Player) parseStats(s *goquery.Document) {
 	var str string
 	var switcher = []bool{true, false}
 
+	heroes := make(map[string]string)
+	stats := make(map[string]string)
+
+	s.Find("section:nth-child(2)").Find("option").Each(func(i int, s *goquery.Selection) {
+		code, e := s.Attr("value")
+		if e {
+			heroes[code] = s.Text()
+		}
+	})
+
+	for code, name := range heroes {
+		fmt.Println(name)
+		s.Find(baseComp).Find(fmt.Sprintf("div[data-category-id=\"%s\"]", code)).Find("table.DataTable").Each(func(i int, s *goquery.Selection) {
+			fmt.Printf("\t%s\n", s.Find(".stat-title").Text())
+			s.Find("tbody").Find("tr").Each(func(i int, s *goquery.Selection) {
+				stat, e := s.Attr("data-stat-id")
+				if e {
+					stats[stat] = s.Find("td:nth-child(1)").Text()
+				}
+				fmt.Printf("\t\t%s\t%s\n", s.Find("td:nth-child(1)").Text(), s.Find("td:nth-child(2)").Text())
+			})
+		})
+	}
+
+	fmt.Printf("Total stat code found:\t%d\n", len(stats))
+
 	for _, isComp := range switcher {
 		if isComp {
 			sel = s.Find(baseComp)
