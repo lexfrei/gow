@@ -15,7 +15,6 @@ jobs:
       uses: crazy-max/ghaction-docker-meta@v1
       with:
         images: ghcr.io/lexfrei/gow/ow-exporter
-        tag-match-latest: true
         tag-sha: true
 
     - name: Set up QEMU
