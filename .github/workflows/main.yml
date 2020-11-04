@@ -13,7 +13,7 @@ jobs:
     - name: Prepare
       id: prep
       run: |
-        DOCKER_IMAGE=ghcr.io/lexfrei/ow-exporter
+        DOCKER_IMAGE=ghcr.io/lexfrei/gow/ow-exporter
         VERSION=edge
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/}
