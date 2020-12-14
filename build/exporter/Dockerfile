@@ -5,7 +5,7 @@ WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter
 
 RUN go get ./... && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o ow-exporter
 
-FROM alpine:3.12.1
+FROM alpine:3.12.2
 
 RUN apk add -u --no-cache ca-certificates=20191127-r4
 
