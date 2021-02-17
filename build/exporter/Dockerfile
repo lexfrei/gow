@@ -5,10 +5,9 @@ WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter
 
 RUN go get ./... && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o ow-exporter
 
-FROM alpine:3.13.1
+FROM scratch
 
-RUN apk add -u --no-cache ca-certificates=20191127-r5
-
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /go/src/github.com/lexfrei/gow/cmd/exporter/ow-exporter /
 
 EXPOSE 9420/tcp
