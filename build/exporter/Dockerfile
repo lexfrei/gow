@@ -1,4 +1,4 @@
-FROM golang:1.16.0-alpine3.12 AS build
+FROM golang:1.16.2-alpine3.12 AS build
 
 COPY ./ /go/src/github.com/lexfrei/gow/
 WORKDIR /go/src/github.com/lexfrei/gow/cmd/exporter
